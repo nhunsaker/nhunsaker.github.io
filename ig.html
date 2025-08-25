@@ -96,10 +96,10 @@
             const shareButton = document.getElementById('shareToInstagram');
             
             if (isMobile) {
-                deviceInfo.textContent = '✅ You're on a mobile device. Instagram story sharing is available.';
+                deviceInfo.textContent = '✅ You are on a mobile device. Instagram story sharing is available.';
                 shareButton.disabled = false;
             } else {
-                deviceInfo.textContent = '❌ You're on desktop. Instagram story sharing is only available on mobile devices.';
+                deviceInfo.textContent = '❌ You are on desktop. Instagram story sharing is only available on mobile devices.';
                 shareButton.disabled = true;
             }
             return isMobile;
