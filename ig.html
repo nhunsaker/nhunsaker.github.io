@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Story Share Example</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            margin-top: 20px;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .button {
+            background-color: #405DE6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #304db7;
+        }
+
+        .button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .device-info {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 6px;
+        }
+
+        .error {
+            color: #e41e3f;
+            margin: 10px 0;
+        }
+
+        .success {
+            color: #2ecc71;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Share to Instagram Story</h1>
+        
+        <!-- Sample image to share -->
+        <img id="shareImage" class="image-preview" src="https://img.buzzfeed.com/buzzfeed-static/static/2023-08/placeholder.jpg" alt="Share preview">
+        
+        <!-- Device detection info -->
+        <div class="device-info">
+            <p id="deviceInfo">Checking device compatibility...</p>
+        </div>
+
+        <!-- Share buttons -->
+        <button id="shareToInstagram" class="button">
+            Share to Instagram Story
+        </button>
+        <button id="downloadImage" class="button">
+            Download Image
+        </button>
+
+        <!-- Status message -->
+        <div id="statusMessage"></div>
+    </div>
+
+    <script>
+        // Function to detect device type
+        function detectDevice() {
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const deviceInfo = document.getElementById('deviceInfo');
+            const shareButton = document.getElementById('shareToInstagram');
+            
+            if (isMobile) {
+                deviceInfo.textContent = '✅ You're on a mobile device. Instagram story sharing is available.';
+                shareButton.disabled = false;
+            } else {
+                deviceInfo.textContent = '❌ You're on desktop. Instagram story sharing is only available on mobile devices.';
+                shareButton.disabled = true;
+            }
+            return isMobile;
+        }
+
+        // Function to share to Instagram Story
+        function shareToInstagramStory(imageUrl) {
+            // Instagram requires a publicly accessible URL
+            const encodedUrl = encodeURIComponent(imageUrl);
+            
+            // Instagram's URL scheme for stories
+            const instagramUrl = `instagram-stories://share?source_application=template_image_api&media=${encodedUrl}`;
+            
+            // Fallback URL - opens Instagram app if story sharing fails
+            const fallbackUrl = 'instagram://';
+            
+            // Check if user is on mobile
+            const isMobile = detectDevice();
+            
+            if (isMobile) {
+                // Try to open Instagram Stories
+                window.location.href = instagramUrl;
+                
+                // Set a timeout to check if Instagram opened
+                setTimeout(() => {
+                    // If Instagram didn't open, try opening the main Instagram app
+                    window.location.href = fallbackUrl;
+                }, 500);
+
+                showStatus('Opening Instagram...', 'success');
+            } else {
+                showStatus('Instagram Story sharing is only available on mobile devices with Instagram installed.', 'error');
+            }
+        }
+
+        // Function to download image
+        function downloadImage(imageUrl) {
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = 'share-image.jpg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showStatus('Download started!', 'success');
+        }
+
+        // Function to show status messages
+        function showStatus(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = type;
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const shareButton = document.getElementById('shareToInstagram');
+            const downloadButton = document.getElementById('downloadImage');
+            const imageElement = document.getElementById('shareImage');
+
+            // Initial device detection
+            detectDevice();
+
+            // Share button click handler
+            shareButton.addEventListener('click', () => {
+                shareToInstagramStory(imageElement.src);
+            });
+
+            // Download button click handler
+            downloadButton.addEventListener('click', () => {
+                downloadImage(imageElement.src);
+            });
+
+            // Also enable Web Share API if available
+            if (navigator.share) {
+                const webShareButton = document.createElement('button');
+                webShareButton.textContent = 'Web Share';
+                webShareButton.className = 'button';
+                shareButton.parentNode.insertBefore(webShareButton, shareButton.nextSibling);
+
+                webShareButton.addEventListener('click', async () => {
+                    try {
+                        await navigator.share({
+                            title: 'My Generated Image',
+                            url: imageElement.src
+                        });
+                        showStatus('Shared successfully!', 'success');
+                    } catch (err) {
+                        showStatus('Error sharing: ' + err.message, 'error');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
